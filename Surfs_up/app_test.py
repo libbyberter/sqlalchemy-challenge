@@ -41,13 +41,13 @@ def welcome():
     return ("Welcome to my Honolulu page!  Glad you could join me!<br/>"
         "<br/>"
         f"Available Routes:<br/>"
+        "<br/>"
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/<start><br/>"
-        f"/api/v1.0/<start>/<end><br/>"
+        f"/api/v1.0/01012017<br/>"
+        f"/api/v1.0/01012016/12312016<br/>"
     )
-
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
@@ -66,7 +66,6 @@ def precipitation():
         year_prcp = {precip.date: precip.prcp for precip in precipitation}
 
     return jsonify(year_prcp)
-
 
 
 @app.route("/api/v1.0/stations")
@@ -100,8 +99,8 @@ def temp_monthly():
     return jsonify(temps=temps)
 
 
-@app.route("/api/v1.0/temp/<start>")
-@app.route("/api/v1.0/temp/<start>/<end>")
+@app.route("/api/v1.0/<start>")
+@app.route("/api/v1.0/<start>/<end>")
 def stats(start=None, end=None):
     """Return TMIN, TAVG, TMAX."""
 
@@ -124,23 +123,30 @@ def stats(start=None, end=None):
         session.close()
 
         temps = list(np.ravel(results))
-        return ## WORK NEEDED HERE ##
+        return jsonify({"Min temp":temps[0],
+        "Avg temp": temps[1],
+        "Max temp": temps[2]})
 
-    # calculate TMIN, TAVG, TMAX with start and stop
-    ## WORK NEEDED HERE ##
-    start = dt.datetime.strptime(start, "%m%d%Y")
-    end = dt.datetime.strptime(end, "%m%d%Y")
+# calculate TMIN, TAVG, TMAX with start and stop
+    if end:
+        start = dt.datetime.strptime(start, "%m%d%Y")
+        end = dt.datetime.strptime(end, "%m%d%Y")
     
-    results = session.query(*sel).\
-        filter(Measurement.date >= start).\
-        filter(Measurement.date <= end).all()
+        results = session.query(*sel).\
+            filter(Measurement.date >= start).\
+            filter(Measurement.date <= end).all()
 
-    session.close()
+        session.close()
 
     # Unravel results into a 1D array and convert to a list
-    temps = list(np.ravel(results))
-    return ## WORK NEEDED HERE ##
+        temps = list(np.ravel(results))
+        return jsonify({"Min temp":temps[0],
+        "Avg temp": temps[1],
+        "Max temp": temps[2]})
+
+
+
 
 
 if __name__ == '__main__':
-    ## WORK NEEDED HERE ##
+    app.run(debug=True)
